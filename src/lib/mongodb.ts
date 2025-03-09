@@ -36,10 +36,10 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Mongoose Connection
-let cached = global.mongoose;
+let cached = global.mongoose || { conn: null, promise: null };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
 async function dbConnect() {
@@ -55,9 +55,7 @@ async function dbConnect() {
       socketTimeoutMS: 45000,
     };
 
-    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(uri, opts);
   }
 
   try {
@@ -73,7 +71,7 @@ async function dbConnect() {
 export async function connectToDatabase() {
   try {
     const client = await clientPromise;
-    const db = client.db("restaurant");
+    const db = client.db();
     await dbConnect(); // Ensure Mongoose is also connected
     return { client, db };
   } catch (error) {

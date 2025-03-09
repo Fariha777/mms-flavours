@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 
@@ -26,8 +27,16 @@ interface Reservation {
 }
 
 export default function MyReservationsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -37,14 +46,32 @@ export default function MyReservationsPage() {
 
   const fetchUserReservations = async () => {
     try {
-      const res = await fetch(`/api/reservations?email=${session?.user?.email}`);
+      setIsLoading(true);
+      const res = await fetch(`/api/reservations?email=${encodeURIComponent(session?.user?.email || "")}`);
       if (!res.ok) throw new Error("Failed to fetch reservations");
       const data = await res.json();
       setReservations(data);
     } catch (error) {
       toast.error("Failed to load your reservations");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FBF7F4]">
+        <Navbar />
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return null; // Router will handle redirect
+  }
 
   return (
     <div className="min-h-screen bg-[#FBF7F4]">
@@ -84,61 +111,75 @@ export default function MyReservationsPage() {
             <div className="relative">
               <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-xl p-6 shadow-lg">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Guests
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Payment
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {reservations.map((reservation) => (
-                          <tr key={reservation._id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{new Date(reservation.date).toLocaleDateString()}</div>
-                              <div className="text-sm text-gray-500">{reservation.time}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reservation.guests}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                ${
-                                  reservation.status === "confirmed"
-                                    ? "bg-green-100 text-green-800"
-                                    : reservation.status === "cancelled"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}
-                              >
-                                {reservation.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">Amount: ৳{reservation.payment?.amount || 0}</div>
-                              <div className="text-sm text-gray-500">
-                                {reservation.payment?.status === "confirmed" ? (
-                                  <span className="text-green-600">Payment Confirmed</span>
-                                ) : (
-                                  <span className="text-yellow-600">Payment Pending</span>
-                                )}
-                              </div>
-                            </td>
+                  {reservations.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-gray-600 mb-4">You don't have any reservations yet.</p>
+                      <a
+                        href="/reservations"
+                        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
+                      >
+                        Make a Reservation
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date & Time
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Guests
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Payment
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {reservations.map((reservation) => (
+                            <tr key={reservation._id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {new Date(reservation.date).toLocaleDateString()}
+                                </div>
+                                <div className="text-sm text-gray-500">{reservation.time}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reservation.guests}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                  ${
+                                    reservation.status === "confirmed"
+                                      ? "bg-green-100 text-green-800"
+                                      : reservation.status === "cancelled"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {reservation.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">Amount: ৳{reservation.payment?.amount || 0}</div>
+                                <div className="text-sm text-gray-500">
+                                  {reservation.payment?.status === "confirmed" ? (
+                                    <span className="text-green-600">Payment Confirmed</span>
+                                  ) : (
+                                    <span className="text-yellow-600">Payment Pending</span>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
