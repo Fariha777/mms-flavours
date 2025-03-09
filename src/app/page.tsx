@@ -11,30 +11,125 @@ import Navbar from "@/components/Navbar";
 
 const menuCategories = [
   {
+    name: "All",
+    items: [], // This will be populated dynamically
+  },
+  {
     name: "Biriyani & Rice",
     items: [
-      { name: "Kacchi Biriyani", price: "৳450", description: "Traditional Dhaka-style mutton kacchi biriyani" },
-      { name: "Bhuna Khichuri", price: "৳280", description: "Classic Bengali yellow rice with vegetables" },
+      {
+        name: "Kacchi Biriyani",
+        price: "৳450",
+        description: "Traditional Dhaka-style mutton kacchi biriyani",
+        image: "https://images.pexels.com/photos/7353380/pexels-photo-7353380.jpeg",
+        category: "Biriyani & Rice",
+      },
+      {
+        name: "Bhuna Khichuri",
+        price: "৳280",
+        description: "Classic Bengali yellow rice with vegetables",
+        image: "https://images.pexels.com/photos/5410400/pexels-photo-5410400.jpeg",
+        category: "Biriyani & Rice",
+      },
     ],
   },
   {
     name: "Curries",
     items: [
-      { name: "Beef Bhuna", price: "৳320", description: "Slow-cooked beef in aromatic spices" },
-      { name: "Ilish Paturi", price: "৳420", description: "Hilsa fish wrapped in banana leaf" },
+      {
+        name: "Beef Bhuna",
+        price: "৳320",
+        description: "Slow-cooked beef in aromatic spices",
+        image: "https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg",
+        category: "Curries",
+      },
+      {
+        name: "Ilish Paturi",
+        price: "৳420",
+        description: "Hilsa fish wrapped in banana leaf",
+        image: "https://images.pexels.com/photos/8969237/pexels-photo-8969237.jpeg",
+        category: "Curries",
+      },
+      {
+        name: "Chicken Roast",
+        price: "৳280",
+        description: "Traditional Bengali-style roasted chicken",
+        image: "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg",
+        category: "Curries",
+      },
+      {
+        name: "Mutton Rezala",
+        price: "৳380",
+        description: "Creamy mutton curry with yogurt and nuts",
+        image: "https://images.pexels.com/photos/6260921/pexels-photo-6260921.jpeg",
+        category: "Curries",
+      },
+    ],
+  },
+  {
+    name: "Appetizers",
+    items: [
+      {
+        name: "Shami Kabab",
+        price: "৳220",
+        description: "Minced meat patties with spices",
+        image: "https://images.pexels.com/photos/6941025/pexels-photo-6941025.jpeg",
+        category: "Appetizers",
+      },
+      {
+        name: "Chicken Chap",
+        price: "৳250",
+        description: "Grilled chicken in special spice blend",
+        image: "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg",
+        category: "Appetizers",
+      },
+      {
+        name: "Dhakai Fuchka",
+        price: "৳150",
+        description: "Crispy shells filled with spicy mixture",
+        image: "https://images.pexels.com/photos/9609838/pexels-photo-9609838.jpeg",
+        category: "Appetizers",
+      },
     ],
   },
   {
     name: "Desserts",
     items: [
-      { name: "Mishti Doi", price: "৳120", description: "Sweet yogurt in earthen pot" },
-      { name: "Roshmalai", price: "৳150", description: "Soft cottage cheese dumplings in sweet milk" },
+      {
+        name: "Mishti Doi",
+        price: "৳120",
+        description: "Sweet yogurt in earthen pot",
+        image: "https://images.pexels.com/photos/4040691/pexels-photo-4040691.jpeg",
+        category: "Desserts",
+      },
+      {
+        name: "Roshmalai",
+        price: "৳150",
+        description: "Soft cottage cheese dumplings in sweet milk",
+        image: "https://images.pexels.com/photos/14705134/pexels-photo-14705134.jpeg",
+        category: "Desserts",
+      },
+    ],
+  },
+  {
+    name: "Drinks",
+    items: [
+      {
+        name: "Masala Chai",
+        price: "৳60",
+        description: "Spiced milk tea",
+        image: "https://images.pexels.com/photos/5946976/pexels-photo-5946976.jpeg",
+        category: "Drinks",
+      },
     ],
   },
 ];
 
+// Populate the "All" category with all items
+menuCategories[0].items = menuCategories.slice(1).flatMap((category) => category.items);
+
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState("Biriyani & Rice");
+  const [activeCategory, setActiveCategory] = useState("All");
   const restaurantLocation = [23.8103, 90.4125]; // Dhaka coordinates
 
   return (
@@ -129,14 +224,38 @@ export default function Home() {
                   key={item.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{item.name}</h3>
-                      <p className="text-gray-600 mt-2">{item.description}</p>
+                  <div className="relative h-48 w-full bg-gray-100">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
+                      onError={(e) => {
+                        const fallbackImages = [
+                          "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg",
+                          "https://images.pexels.com/photos/5410400/pexels-photo-5410400.jpeg",
+                          "https://images.pexels.com/photos/7353380/pexels-photo-7353380.jpeg",
+                        ];
+                        // Try a different fallback image
+                        e.currentTarget.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                      }}
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx0fHRsdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR3/2wBDAR0XFyAeIB4gHh4eIB0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR3/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+                  <div className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-900">{item.name}</h3>
+                        <p className="text-gray-600 mt-2">{item.description}</p>
+                      </div>
+                      <span className="text-xl font-bold text-red-600">{item.price}</span>
                     </div>
-                    <span className="text-xl font-bold text-red-600">{item.price}</span>
                   </div>
                 </motion.div>
               ))}
