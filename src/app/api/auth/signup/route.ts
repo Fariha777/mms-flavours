@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { connectToDatabase } from "@/lib/mongodb";
+import { dbConnect } from "@/lib/mongodb";
 import User from "@/models/User";
 
 export async function POST(request: Request) {
   try {
+    // Connect to database using Mongoose
+    await dbConnect();
+
     const { name, email, password } = await request.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists with timeout
+    const existingUser = await User.findOne({ email }).maxTimeMS(5000);
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
@@ -44,6 +45,6 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Signup error:", error);
-    return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create user. Please try again." }, { status: 500 });
   }
 }
