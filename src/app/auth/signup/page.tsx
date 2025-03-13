@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { EnvelopeIcon, KeyIcon, UserIcon, PhoneIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-hot-toast";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function SignUpPage() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +26,9 @@ export default function SignUpPage() {
       setError("Passwords do not match");
       return;
     }
+
+    setIsSubmitting(true);
+    setError("");
 
     try {
       const res = await fetch("/api/auth/signup", {
@@ -39,14 +44,18 @@ export default function SignUpPage() {
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Failed to create account");
       }
 
+      toast.success("Account created successfully!");
       router.push("/auth/signin");
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -194,9 +203,10 @@ export default function SignUpPage() {
 
                     <button
                       type="submit"
-                      className="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                      disabled={isSubmitting}
+                      className="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Create Account
+                      {isSubmitting ? "Creating Account..." : "Create Account"}
                     </button>
                   </form>
 

@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { motion } from "framer-motion";
 import { ChevronRightIcon, CalendarIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import Navbar from "@/components/Navbar";
+import dynamic from "next/dynamic";
 
 const menuCategories = [
   {
@@ -127,6 +128,16 @@ const menuCategories = [
 
 // Populate the "All" category with all items
 menuCategories[0].items = menuCategories.slice(1).flatMap((category) => category.items);
+
+// Dynamically import the Map component with SSR disabled
+const Map = dynamic(() => import("@/components/Map"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
+      <p className="text-gray-500">Loading map...</p>
+    </div>
+  ),
+});
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -303,19 +314,7 @@ export default function Home() {
             </div>
 
             <div className="h-[400px] rounded-xl overflow-hidden shadow-lg">
-              <MapContainer center={restaurantLocation} zoom={15} className="h-full w-full" scrollWheelZoom={false}>
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={restaurantLocation}>
-                  <Popup>
-                    <b>Our Restaurant</b>
-                    <br />
-                    123 Gulshan Avenue, Dhaka
-                  </Popup>
-                </Marker>
-              </MapContainer>
+              <Map center={[23.8103, 90.4125]} zoom={15} />
             </div>
           </div>
         </div>
